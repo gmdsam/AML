@@ -35,13 +35,13 @@ def load_data():
 	print('Size of validation data is '+str(valid_data.shape))
 	valid_target = np.squeeze(np.asarray(data['validY']))
 	print('Size of validation target is '+str(valid_target.shape))
-	
+	'''
 	#Loading testing data
 	data = scipy.io.loadmat('testdata.mat')
 	test_data = np.asarray(data['testX'])
 	# Size is number of patches, number of input feature maps, patch height, patch width
 	print('Size of testing data is '+ str(test_data.shape))
-
+	'''
 	def shared(data_x, data_y, borrow=True):
 		shared_x = theano.shared(np.asarray(data_x, dtype=theano.config.floatX), borrow=borrow)
 		shared_y = theano.shared(np.asarray(data_y, dtype=theano.config.floatX), borrow=borrow)
@@ -53,11 +53,11 @@ def load_data():
 
 	train_set_x, train_set_y = shared(train_data, train_target)
 	valid_set_x, valid_set_y = shared(valid_data, valid_target)
-	test_set_x = shared_Test(test_data)
+	#test_set_x = shared_Test(test_data)
 
-	return [(train_set_x, train_set_y), (valid_set_x, valid_set_y), (test_set_x)]
+	return [(train_set_x, train_set_y), (valid_set_x, valid_set_y)]#, (test_set_x)]
 
-def DeepNetwork(batch_size=10, learning_rate=0.1, nkerns=[25, 50, 80], n_epochs=10):
+def DeepNetwork(batch_size=100, learning_rate=0.1, nkerns=[25, 50, 80], n_epochs=50):
 	
 	print('Loading data')
 	
@@ -65,15 +65,15 @@ def DeepNetwork(batch_size=10, learning_rate=0.1, nkerns=[25, 50, 80], n_epochs=
 	
 	train_set_x, train_set_y = dataset[0]
 	valid_set_x, valid_set_y = dataset[1]
-	test_set_x = dataset[2]
+	#test_set_x = dataset[2]
 	
 	# compute number of minibatches for training, validation and testing
 	n_train_batches = train_set_x.get_value(borrow=True).shape[0]
 	n_valid_batches = valid_set_x.get_value(borrow=True).shape[0]
-	n_test_batches = test_set_x.get_value(borrow=True).shape[0]
+	#n_test_batches = test_set_x.get_value(borrow=True).shape[0]
 	n_train_batches //= batch_size
 	n_valid_batches //= batch_size
-	n_test_batches //= batch_size
+	#n_test_batches //= batch_size
 	
 	index = T.lscalar()
 	x = T.matrix('x')
@@ -106,23 +106,23 @@ def DeepNetwork(batch_size=10, learning_rate=0.1, nkerns=[25, 50, 80], n_epochs=
 	)
 	
 	layer4 = FullyConnectedLayer(
-		rng, input=layer3.output_dropout,
+		rng, input=layer3.output,
 		n_in=1024, n_out=1024
 	)
 	
-	layer5 = LogisticRegression(input=layer5_input, n_in=1024, n_out=2)
+	layer5 = LogisticRegression(input=layer4.output, n_in=1024, n_out=2)
 	
 	cost = layer5.negative_log_likelihood(y)
 	
 	print('Building model')
-	
+	'''
 	test_model = theano.function(
 		[index],
 	    givens={
 	        x: test_set_x[index * batch_size: (index + 1) * batch_size]
 	    }
 	)
-	
+	'''
 	validate_model = theano.function(
         [index],
         layer5.errors(y),
